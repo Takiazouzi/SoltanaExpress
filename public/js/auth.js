@@ -2,7 +2,7 @@
 // Authentication Logic (Fetch API, No Reloads)
 // ============================================================================
 
-const API_ENDPOINT = '../src/controllers/AuthController.php';
+const API_ENDPOINT = '/api/auth.php'; // Now in public/api/
 
 export async function fetchJSON(action, payload) {
   const response = await fetch(API_ENDPOINT, {
@@ -69,7 +69,6 @@ async function handleRegister(e) {
   msgEl.style.display = 'none';
   document.querySelectorAll('.field-error').forEach(el => el.style.display = 'none');
 
-  // Client-side validation
   if (form.password.value !== form.confirm_password.value) {
     document.getElementById('confirm-error').textContent = 'Passwords do not match.';
     document.getElementById('confirm-error').style.display = 'block';
