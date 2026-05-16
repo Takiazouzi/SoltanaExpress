@@ -1,93 +1,90 @@
-<?php declare(strict_types=1);
-// ============================================================================
-// Auth Controller - Minimal (Hardcoded DB, No .env)
-// ============================================================================
-
+<?php
+// NO strict_types, NO buffering issues
+error_reporting(0);
+@ob_end_clean();
+@ob_start();
 header('Content-Type: application/json');
-error_reporting(E_ALL);
-ini_set('display_errors', '1');
 
-// Hardcoded DB config (matches test-raw.php)
+// Hardcoded DB config
 $dsn = "mysql:host=127.0.0.1;port=3306;dbname=restaurant;charset=utf8mb4";
 $dbUser = 'restaurant_app';
 $dbPass = 'app_secret_123';
 
-// Start session safely
-if (session_status() === PHP_SESSION_NONE) {
-    @session_start();
-}
+@session_start(); // Suppress warnings
 
-// Read and parse JSON input
-$rawInput = file_get_contents('php://input');
-if (empty($rawInput)) {
-    http_response_code(400);
-    echo json_encode(['success' => false, 'message' => 'Empty request body']);
-    exit;
-}
-
-$data = json_decode($rawInput, true);
-if (json_last_error() !== JSON_ERROR_NONE) {
-    http_response_code(400);
-    echo json_encode(['success' => false, 'message' => 'Invalid JSON: ' . json_last_error_msg()]);
-    exit;
-}
-
+$raw = file_get_contents('php://input');
+$data = json_decode($raw, true);
 $action = $data['action'] ?? '';
 
-// Create PDO connection directly
+// Direct PDO connection
 try {
-    $pdo = new \PDO($dsn, $dbUser, $dbPass, [
-        \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
-        \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC,
-        \PDO::ATTR_EMULATE_PREPARES => false,
+    $pdo = new PDO($dsn, $dbUser, $dbPass, [
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
     ]);
-} catch (\PDOException $e) {
-    http_response_code(500);
-    echo json_encode(['success' => false, 'message' => 'DB connection failed: ' . $e->getMessage()]);
+} catch (Exception $e) {
+    echo json_encode(['success'=>false,'message'=>'DB:'.$e->getMessage()]);
     exit;
 }
 
-// Load User model
-require_once __DIR__ . '/../models/User.php';
-$userModel = new User($pdo);
-
-// Route by action
-try {
-    switch ($action) {
-        case 'register':
-            $result = $userModel->register(
-                trim($data['name'] ?? ''),
-                trim($data['email'] ?? ''),
-                $data['password'] ?? '',
-                $data['confirm_password'] ?? ''
-            );
-            break;
-            
-        case 'login':
-            $result = $userModel->login(
-                trim($data['email'] ?? ''),
-                $data['password'] ?? ''
-            );
-            break;
-            
-        case 'logout':
-            User::logout();
-            $result = ['success' => true, 'message' => 'Logged out successfully.'];
-            break;
-            
-        default:
-            http_response_code(400);
-            $result = ['success' => false, 'message' => 'Invalid or missing action.'];
-    }
-    echo json_encode($result);
+// Inline User logic (no separate file to avoid include issues)
+if ($action === 'register') {
+    $name = trim($data['name']??'');
+    $email = trim($data['email']??'');
+    $pass = $data['password']??'';
+    $confirm = $data['confirm_password']??'';
     
-} catch (\Throwable $e) {
-    http_response_code(500);
-    echo json_encode([
-        'success' => false,
-        'message' => $e->getMessage(),
-        'file' => basename($e->getFile()),
-        'line' => $e->getLine()
-    ]);
+    if (!$name || !$email || !$pass) {
+        echo json_encode(['success'=>false,'message'=>'Missing fields']); exit;
+    }
+    if ($pass !== $confirm) {
+        echo json_encode(['success'=>false,'message'=>'Passwords mismatch']); exit;
+    }
+    
+    // Check duplicate
+    $stmt = $pdo->prepare('SELECT id FROM users WHERE email=?');
+    $stmt->execute([$email]);
+    if ($stmt->fetch()) {
+        echo json_encode(['success'=>false,'message'=>'Email exists']); exit;
+    }
+    
+    // Insert
+    $hash = password_hash($pass, PASSWORD_BCRYPT, ['cost'=>4]);
+    $stmt = $pdo->prepare('INSERT INTO users (name,email,password) VALUES (?,?,?)');
+    $stmt->execute([$name,$email,$hash]);
+    
+    echo json_encode(['success'=>true,'message'=>'Registered','user_id'=>(int)$pdo->lastInsertId()]);
+    exit;
 }
+
+if ($action === 'login') {
+    $email = trim($data['email']??'');
+    $pass = $data['password']??'';
+    
+    $stmt = $pdo->prepare('SELECT id,name,role,password FROM users WHERE email=?');
+    $stmt->execute([$email]);
+    $user = $stmt->fetch();
+    
+    if (!$user || !password_verify($pass, $user['password'])) {
+        echo json_encode(['success'=>false,'message'=>'Invalid credentials']); exit;
+    }
+    
+    session_regenerate_id(true);
+    $_SESSION['user_id'] = $user['id'];
+    $_SESSION['role'] = $user['role'];
+    
+    echo json_encode(['success'=>true,'message'=>'Logged in','redirect'=>'/profile.php']);
+    exit;
+}
+
+if ($action === 'logout') {
+    $_SESSION = [];
+    @session_destroy();
+    echo json_encode(['success'=>true,'message'=>'Logged out']);
+    exit;
+}
+
+// Fallback
+http_response_code(400);
+echo json_encode(['success'=>false,'message'=>'Invalid action']);
 exit;
