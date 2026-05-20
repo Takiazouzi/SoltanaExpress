@@ -1,7 +1,17 @@
 # SoltanaExpress 🍽️
 
-A modern, full-featured restaurant management platform built with **PHP**, **MariaDB**, and **Vanilla JavaScript**.  
-It provides a seamless customer ordering experience alongside a powerful admin dashboard for managing menu items, orders, reservations, and analytics.
+A modern, full-featured restaurant management platform built with **PHP**, **MariaDB**, and **Vanilla JavaScript**.
+
+SoltanaExpress provides a complete restaurant ecosystem including:
+
+- 🍔 Online food ordering
+- 📅 Reservation management
+- 👤 Customer accounts
+- 🛠️ Admin dashboard
+- 📊 Analytics & activity tracking
+- 🔐 Secure authentication system
+
+---
 
 ![PHP](https://img.shields.io/badge/PHP-8.4-777BB4?style=flat&logo=php)
 ![MariaDB](https://img.shields.io/badge/MariaDB-11.8-003545?style=flat&logo=mariadb)
@@ -16,7 +26,7 @@ It provides a seamless customer ordering experience alongside a powerful admin d
 - [Features](#-features)
 - [Tech Stack](#-tech-stack)
 - [Project Structure](#-project-structure)
-- [Installation & Setup](#-installation--setup)
+- [Installation](#-installation)
 - [Environment Variables](#-environment-variables)
 - [Database Setup](#-database-setup)
 - [Running the Application](#-running-the-application)
@@ -26,7 +36,6 @@ It provides a seamless customer ordering experience alongside a powerful admin d
 - [Security Practices](#-security-practices)
 - [Deployment Notes](#-deployment-notes)
 - [Nginx Configuration](#-nginx-configuration)
-- [Contributing](#-contributing)
 - [License](#-license)
 
 ---
@@ -35,14 +44,15 @@ It provides a seamless customer ordering experience alongside a powerful admin d
 
 SoltanaExpress is a restaurant management and online ordering platform designed for both customers and administrators.
 
-The platform includes:
+The application combines a clean customer-facing experience with a powerful admin dashboard for managing:
 
-- Customer-facing menu browsing and ordering
-- Reservation management system
-- Secure authentication system
-- Admin dashboard with analytics
-- Real-time activity monitoring
-- Responsive UI for desktop and mobile devices
+- Menu items
+- Orders
+- Reservations
+- User activity
+- Restaurant analytics
+
+The platform is fully responsive and optimized for desktop, tablet, and mobile devices.
 
 ---
 
@@ -50,34 +60,29 @@ The platform includes:
 
 ## 👥 Customer Features
 
-### 🍔 Browse Menu
-- Filter dishes by category
+### 🍔 Menu Browsing
+- Browse dishes by category
 - Search menu items instantly
-- View descriptions and pricing
 - Responsive menu interface
+- Dynamic cart system
 
-### 🛒 Order System
-- Add/remove items from cart
-- Dynamic order summary
+### 🛒 Ordering System
+- Add/remove cart items
 - Checkout workflow
 - Order history tracking
+- Real-time order summary
 
 ### 📅 Reservations
-- Create reservations
-- Select date and time
-- Guest count support
-- Special request field
+- Book restaurant tables
+- Select date & time
+- Specify guest count
+- Add special requests
 
-### 👤 User Profile
-- Manage account information
-- View previous orders
-- Track reservations
-- Update settings
-
-### 📱 Responsive Design
-- Mobile-first layout
-- Tablet support
-- Desktop optimized UI
+### 👤 User Profiles
+- Account management
+- Reservation tracking
+- Order history
+- Session-based authentication
 
 ---
 
@@ -85,39 +90,33 @@ The platform includes:
 
 ### 📦 Menu Management
 - Create menu items
-- Edit item details
-- Delete menu items
-- Upload dish images
-- Support for JPG, PNG, WebP
+- Update dish details
+- Delete items
+- Upload images (JPG/PNG/WebP)
 
 ### 📋 Order Management
 - View all orders
-- Update order status
-- Track order lifecycle
+- Update order statuses
 - Expandable order details
+- Track order lifecycle
 
 ### 🪑 Reservation Management
 - Confirm reservations
 - Cancel reservations
-- Filter reservations
+- Filter by date
 - View customer details
 
-### 📊 Analytics Dashboard
-- Revenue statistics
-- Order analytics
-- Reservation metrics
+### 📊 Analytics
+- Revenue metrics
+- Order statistics
+- Reservation analytics
 - Chart.js visualizations
 
 ### 🕒 Activity Feed
-- Live admin activity timeline
-- User registrations
-- Order tracking
-- Reservation events
-
-### 🔐 Role-Based Access
-- Admin-only routes
-- Session protection
-- Authentication guards
+- Real-time admin activity
+- User registration logs
+- Order tracking events
+- Reservation activity
 
 ---
 
@@ -130,9 +129,9 @@ The platform includes:
 | Frontend | HTML5, CSS3, Vanilla JS |
 | Charts | Chart.js 4.x |
 | Icons | Tabler Icons |
-| Auth | PHP Sessions |
+| Authentication | PHP Sessions |
 | Database Access | PDO |
-| Server | PHP Built-in Server |
+| Development Server | PHP Built-in Server |
 | Version Control | Git |
 
 ---
@@ -173,19 +172,9 @@ SoltanaExpress/
 
 ---
 
-# ⚙️ Installation & Setup
+# ⚙️ Installation
 
-## 1️⃣ Prerequisites
-
-- PHP 8.4+
-- MariaDB 11.8+ or MySQL 8+
-- PDO Extension
-- MBString Extension
-- Fileinfo Extension
-
----
-
-## 2️⃣ Clone Repository
+## 1️⃣ Clone Repository
 
 \`\`\`bash
 git clone https://github.com/yourusername/soltana-express.git
@@ -194,7 +183,39 @@ cd soltana-express
 
 ---
 
-## 3️⃣ Create Environment File
+## 2️⃣ Install Required Packages
+
+### Debian / Ubuntu / Kali
+
+\`\`\`bash
+sudo apt update
+
+sudo apt install -y \
+php8.4 \
+php8.4-cli \
+php8.4-mysql \
+php8.4-mbstring \
+php8.4-xml \
+php8.4-curl \
+php8.4-zip \
+php8.4-intl \
+php8.4-fileinfo \
+mariadb-server \
+git
+\`\`\`
+
+---
+
+## 3️⃣ Start MariaDB
+
+\`\`\`bash
+sudo systemctl enable mariadb
+sudo systemctl start mariadb
+\`\`\`
+
+---
+
+## 4️⃣ Create Environment File
 
 \`\`\`bash
 cp .env.example .env
@@ -212,6 +233,7 @@ APP_URL=http://localhost:8110
 DB_HOST=127.0.0.1
 DB_PORT=3306
 DB_NAME=restaurant
+
 DB_USER=restaurant_app
 DB_PASS=your_secure_password
 
@@ -223,30 +245,17 @@ ALLOWED_IMAGE_EXTENSIONS=jpg,jpeg,png,webp
 
 # 🗄️ Database Setup
 
-## Start MariaDB
-
-\`\`\`bash
-sudo systemctl start mariadb
-sudo systemctl enable mariadb
-\`\`\`
-
----
-
 ## Create Database & User
 
 \`\`\`bash
-sudo mysql << 'SQL'
+sudo mysql <<'SQL'
 CREATE DATABASE IF NOT EXISTS restaurant
 CHARACTER SET utf8mb4
 COLLATE utf8mb4_unicode_ci;
 
-CREATE USER IF NOT EXISTS 'restaurant_app'@'127.0.0.1'
-IDENTIFIED BY 'your_secure_password';
-
 CREATE USER IF NOT EXISTS 'restaurant_app'@'localhost'
 IDENTIFIED BY 'your_secure_password';
 
-GRANT ALL PRIVILEGES ON restaurant.* TO 'restaurant_app'@'127.0.0.1';
 GRANT ALL PRIVILEGES ON restaurant.* TO 'restaurant_app'@'localhost';
 
 FLUSH PRIVILEGES;
@@ -255,21 +264,25 @@ SQL
 
 ---
 
-## Import Schema
+## Import Database Schema
 
 \`\`\`bash
-mysql -u restaurant_app -p -h 127.0.0.1 restaurant < database.sql
+mysql -u restaurant_app -p restaurant < database.sql
 \`\`\`
 
 ---
 
 # ▶️ Running the Application
 
+## Start PHP Development Server
+
 \`\`\`bash
-php -t public -S localhost:8110
+php -S localhost:8110 -t public
 \`\`\`
 
-Open in browser:
+---
+
+## Open in Browser
 
 \`\`\`text
 http://localhost:8110
@@ -283,7 +296,7 @@ http://localhost:8110
 |------|------|------|
 | admin@savoria.com | admin123 | Administrator |
 
-> Change the default admin password immediately in production.
+> ⚠️ Change the default administrator password immediately in production.
 
 ---
 
@@ -293,10 +306,10 @@ http://localhost:8110
 
 | Endpoint | Method | Description | Auth |
 |----------|--------|-------------|------|
-| \`/api/auth.php\` | POST | Login / Register / Logout | No |
-| \`/api/menu.php\` | GET | Get menu items | No |
-| \`/api/order.php\` | POST | Place order | User |
-| \`/api/reservation.php\` | GET/POST | Reservations | User |
+| /api/auth.php | POST | Login / Register / Logout | No |
+| /api/menu.php | GET | Fetch menu items | No |
+| /api/order.php | POST | Create orders | User |
+| /api/reservation.php | GET/POST | Reservations | User |
 
 ---
 
@@ -304,10 +317,10 @@ http://localhost:8110
 
 | Endpoint | Method | Description | Auth |
 |----------|--------|-------------|------|
-| \`/admin/Activity.php\` | GET | Activity feed | Admin |
-| \`/admin/Order.php\` | GET/POST | Orders management | Admin |
-| \`/admin/Reservation.php\` | GET/POST | Reservations management | Admin |
-| \`/admin/menu-items.php\` | GET/POST | Menu CRUD | Admin |
+| /admin/Activity.php | GET | Activity feed | Admin |
+| /admin/Order.php | GET/POST | Manage orders | Admin |
+| /admin/Reservation.php | GET/POST | Manage reservations | Admin |
+| /admin/menu-items.php | GET/POST | Menu CRUD | Admin |
 
 ---
 
@@ -316,7 +329,7 @@ http://localhost:8110
 ## Start Development Server
 
 \`\`\`bash
-php -t public -S localhost:8110
+php -S localhost:8110 -t public
 \`\`\`
 
 ---
@@ -324,7 +337,7 @@ php -t public -S localhost:8110
 ## Check PHP Syntax
 
 \`\`\`bash
-find . -name "*.php" -exec php -l {} \\;
+find . -type f -name "*.php" -exec php -l {} \;
 \`\`\`
 
 ---
@@ -332,29 +345,40 @@ find . -name "*.php" -exec php -l {} \\;
 ## Test Database Connection
 
 \`\`\`bash
-php -r "require 'config/env.php'; \\$pdo = new PDO('mysql:host='.getenv('DB_HOST').';dbname='.getenv('DB_NAME'), getenv('DB_USER'), getenv('DB_PASS')); echo 'DB OK';"
+php -r '
+require "config/env.php";
+
+\$pdo = new PDO(
+    "mysql:host=" . getenv("DB_HOST") .
+    ";dbname=" . getenv("DB_NAME"),
+    getenv("DB_USER"),
+    getenv("DB_PASS")
+);
+
+echo "Database connection successful\n";
+'
 \`\`\`
 
 ---
 
-## Run on Different Port
+## Run on Another Port
 
 \`\`\`bash
-php -t public -S localhost:8080
+php -S localhost:8080 -t public
 \`\`\`
 
 ---
 
 # 🔐 Security Practices
 
-- Password hashing using \`password_hash()\`
+- Password hashing using `password_hash()`
 - PDO prepared statements
 - Session regeneration on login
-- Secure session handling
 - Environment-based configuration
-- Server-side validation
-- File upload restrictions
+- File upload validation
+- Secure admin route protection
 - Role-based access control
+- Server-side validation
 
 ---
 
@@ -362,14 +386,14 @@ php -t public -S localhost:8080
 
 ## Production Checklist
 
-- Set \`APP_ENV=production\`
-- Use Apache or Nginx
+- Set `APP_ENV=production`
+- Use Nginx or Apache
 - Enable HTTPS
 - Configure PHP-FPM
-- Secure file permissions
-- Set upload limits
-- Enable backups
-- Rotate logs
+- Restrict upload permissions
+- Configure backups
+- Monitor logs
+- Rotate logs regularly
 - Change default credentials
 
 ---
@@ -385,14 +409,15 @@ server {
     index index.php;
 
     location / {
-        try_files \\$uri \\$uri/ /index.php?\\$query_string;
+        try_files \$uri \$uri/ /index.php?\$query_string;
     }
 
-    location ~ \\.php\\$ {
+    location ~ \\.php\$ {
         include snippets/fastcgi-php.conf;
+
         fastcgi_pass unix:/run/php/php8.4-fpm.sock;
 
-        fastcgi_param SCRIPT_FILENAME \\$document_root\\$fastcgi_script_name;
+        fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
 
         include fastcgi_params;
     }
@@ -401,10 +426,25 @@ server {
         deny all;
     }
 
-    location ~* \\.(jpg|jpeg|png|gif|ico|css|js)\\$ {
+    location ~* \\.(jpg|jpeg|png|gif|ico|css|js|webp)\$ {
         expires 30d;
     }
 }
 \`\`\`
 
 ---
+
+# 📄 License
+
+This project is licensed under the MIT License.
+
+---
+
+# ⭐ Acknowledgments
+
+- PHP Community
+- MariaDB
+- Chart.js
+- Tabler Icons
+- Open Source Contributors
+
