@@ -1,4 +1,3 @@
-cat > README.md << 'EOF'
 # SoltanaExpress 🍽️
 
 A modern, full-featured restaurant management platform built with **PHP**, **MariaDB**, and **Vanilla JavaScript**.  
@@ -409,4 +408,3 @@ server {
 \`\`\`
 
 ---
-EOF
