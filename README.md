@@ -138,7 +138,7 @@ The platform is fully responsive and optimized for desktop, tablet, and mobile d
 
 # 📁 Project Structure
 
-\`\`\`text
+```text
 SoltanaExpress/
 │
 ├── config/
@@ -168,7 +168,7 @@ SoltanaExpress/
 ├── .gitignore
 ├── database.sql
 └── README.md
-\`\`\`
+```
 
 ---
 
@@ -176,10 +176,10 @@ SoltanaExpress/
 
 ## 1️⃣ Clone Repository
 
-\`\`\`bash
+```bash
 git clone https://github.com/yourusername/soltana-express.git
 cd soltana-express
-\`\`\`
+```
 
 ---
 
@@ -187,7 +187,7 @@ cd soltana-express
 
 ### Debian / Ubuntu / Kali
 
-\`\`\`bash
+```bash
 sudo apt update
 
 sudo apt install -y \
@@ -199,34 +199,33 @@ php8.4-xml \
 php8.4-curl \
 php8.4-zip \
 php8.4-intl \
-php8.4-fileinfo \
 mariadb-server \
 git
-\`\`\`
+```
 
 ---
 
 ## 3️⃣ Start MariaDB
 
-\`\`\`bash
+```bash
 sudo systemctl enable mariadb
 sudo systemctl start mariadb
-\`\`\`
+```
 
 ---
 
 ## 4️⃣ Create Environment File
 
-\`\`\`bash
+```bash
 cp .env.example .env
 nano .env
-\`\`\`
+```
 
 ---
 
 # 🔧 Environment Variables
 
-\`\`\`env
+```env
 APP_ENV=development
 APP_URL=http://localhost:8110
 
@@ -239,7 +238,7 @@ DB_PASS=your_secure_password
 
 MAX_UPLOAD_SIZE=2097152
 ALLOWED_IMAGE_EXTENSIONS=jpg,jpeg,png,webp
-\`\`\`
+```
 
 ---
 
@@ -247,7 +246,7 @@ ALLOWED_IMAGE_EXTENSIONS=jpg,jpeg,png,webp
 
 ## Create Database & User
 
-\`\`\`bash
+```bash
 sudo mysql <<'SQL'
 CREATE DATABASE IF NOT EXISTS restaurant
 CHARACTER SET utf8mb4
@@ -260,15 +259,15 @@ GRANT ALL PRIVILEGES ON restaurant.* TO 'restaurant_app'@'localhost';
 
 FLUSH PRIVILEGES;
 SQL
-\`\`\`
+```
 
 ---
 
 ## Import Database Schema
 
-\`\`\`bash
+```bash
 mysql -u restaurant_app -p restaurant < database.sql
-\`\`\`
+```
 
 ---
 
@@ -276,17 +275,17 @@ mysql -u restaurant_app -p restaurant < database.sql
 
 ## Start PHP Development Server
 
-\`\`\`bash
+```bash
 php -S localhost:8110 -t public
-\`\`\`
+```
 
 ---
 
 ## Open in Browser
 
-\`\`\`text
+```text
 http://localhost:8110
-\`\`\`
+```
 
 ---
 
@@ -306,10 +305,10 @@ http://localhost:8110
 
 | Endpoint | Method | Description | Auth |
 |----------|--------|-------------|------|
-| /api/auth.php | POST | Login / Register / Logout | No |
-| /api/menu.php | GET | Fetch menu items | No |
-| /api/order.php | POST | Create orders | User |
-| /api/reservation.php | GET/POST | Reservations | User |
+| `/api/auth.php` | POST | Login / Register / Logout | No |
+| `/api/menu.php` | GET | Fetch menu items | No |
+| `/api/order.php` | POST | Create orders | User |
+| `/api/reservation.php` | GET/POST | Reservations | User |
 
 ---
 
@@ -317,10 +316,10 @@ http://localhost:8110
 
 | Endpoint | Method | Description | Auth |
 |----------|--------|-------------|------|
-| /admin/Activity.php | GET | Activity feed | Admin |
-| /admin/Order.php | GET/POST | Manage orders | Admin |
-| /admin/Reservation.php | GET/POST | Manage reservations | Admin |
-| /admin/menu-items.php | GET/POST | Menu CRUD | Admin |
+| `/admin/Activity.php` | GET | Activity feed | Admin |
+| `/admin/Order.php` | GET/POST | Manage orders | Admin |
+| `/admin/Reservation.php` | GET/POST | Manage reservations | Admin |
+| `/admin/menu-items.php` | GET/POST | Menu CRUD | Admin |
 
 ---
 
@@ -328,27 +327,27 @@ http://localhost:8110
 
 ## Start Development Server
 
-\`\`\`bash
+```bash
 php -S localhost:8110 -t public
-\`\`\`
+```
 
 ---
 
 ## Check PHP Syntax
 
-\`\`\`bash
+```bash
 find . -type f -name "*.php" -exec php -l {} \;
-\`\`\`
+```
 
 ---
 
 ## Test Database Connection
 
-\`\`\`bash
+```bash
 php -r '
 require "config/env.php";
 
-\$pdo = new PDO(
+$pdo = new PDO(
     "mysql:host=" . getenv("DB_HOST") .
     ";dbname=" . getenv("DB_NAME"),
     getenv("DB_USER"),
@@ -357,15 +356,15 @@ require "config/env.php";
 
 echo "Database connection successful\n";
 '
-\`\`\`
+```
 
 ---
 
 ## Run on Another Port
 
-\`\`\`bash
+```bash
 php -S localhost:8080 -t public
-\`\`\`
+```
 
 ---
 
@@ -400,7 +399,7 @@ php -S localhost:8080 -t public
 
 # 🌍 Nginx Configuration
 
-\`\`\`nginx
+```nginx
 server {
     listen 80;
     server_name yourdomain.com;
@@ -409,28 +408,28 @@ server {
     index index.php;
 
     location / {
-        try_files \$uri \$uri/ /index.php?\$query_string;
+        try_files $uri $uri/ /index.php?$query_string;
     }
 
-    location ~ \\.php\$ {
+    location ~ \.php$ {
         include snippets/fastcgi-php.conf;
 
         fastcgi_pass unix:/run/php/php8.4-fpm.sock;
 
-        fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
 
         include fastcgi_params;
     }
 
-    location ~ /\\. {
+    location ~ /\. {
         deny all;
     }
 
-    location ~* \\.(jpg|jpeg|png|gif|ico|css|js|webp)\$ {
+    location ~* \.(jpg|jpeg|png|gif|ico|css|js|webp)$ {
         expires 30d;
     }
 }
-\`\`\`
+```
 
 ---
 
@@ -447,4 +446,3 @@ This project is licensed under the MIT License.
 - Chart.js
 - Tabler Icons
 - Open Source Contributors
-
