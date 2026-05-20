@@ -1,3 +1,4 @@
+cat > README.md << 'EOF'
 # SoltanaExpress 🍽️
 
 A modern, full-featured restaurant management platform built with **PHP**, **MariaDB**, and **Vanilla JavaScript**.  
@@ -139,7 +140,7 @@ The platform includes:
 
 # 📁 Project Structure
 
-```text
+\`\`\`text
 SoltanaExpress/
 │
 ├── config/
@@ -169,3 +170,243 @@ SoltanaExpress/
 ├── .gitignore
 ├── database.sql
 └── README.md
+\`\`\`
+
+---
+
+# ⚙️ Installation & Setup
+
+## 1️⃣ Prerequisites
+
+- PHP 8.4+
+- MariaDB 11.8+ or MySQL 8+
+- PDO Extension
+- MBString Extension
+- Fileinfo Extension
+
+---
+
+## 2️⃣ Clone Repository
+
+\`\`\`bash
+git clone https://github.com/yourusername/soltana-express.git
+cd soltana-express
+\`\`\`
+
+---
+
+## 3️⃣ Create Environment File
+
+\`\`\`bash
+cp .env.example .env
+nano .env
+\`\`\`
+
+---
+
+# 🔧 Environment Variables
+
+\`\`\`env
+APP_ENV=development
+APP_URL=http://localhost:8110
+
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_NAME=restaurant
+DB_USER=restaurant_app
+DB_PASS=your_secure_password
+
+MAX_UPLOAD_SIZE=2097152
+ALLOWED_IMAGE_EXTENSIONS=jpg,jpeg,png,webp
+\`\`\`
+
+---
+
+# 🗄️ Database Setup
+
+## Start MariaDB
+
+\`\`\`bash
+sudo systemctl start mariadb
+sudo systemctl enable mariadb
+\`\`\`
+
+---
+
+## Create Database & User
+
+\`\`\`bash
+sudo mysql << 'SQL'
+CREATE DATABASE IF NOT EXISTS restaurant
+CHARACTER SET utf8mb4
+COLLATE utf8mb4_unicode_ci;
+
+CREATE USER IF NOT EXISTS 'restaurant_app'@'127.0.0.1'
+IDENTIFIED BY 'your_secure_password';
+
+CREATE USER IF NOT EXISTS 'restaurant_app'@'localhost'
+IDENTIFIED BY 'your_secure_password';
+
+GRANT ALL PRIVILEGES ON restaurant.* TO 'restaurant_app'@'127.0.0.1';
+GRANT ALL PRIVILEGES ON restaurant.* TO 'restaurant_app'@'localhost';
+
+FLUSH PRIVILEGES;
+SQL
+\`\`\`
+
+---
+
+## Import Schema
+
+\`\`\`bash
+mysql -u restaurant_app -p -h 127.0.0.1 restaurant < database.sql
+\`\`\`
+
+---
+
+# ▶️ Running the Application
+
+\`\`\`bash
+php -t public -S localhost:8110
+\`\`\`
+
+Open in browser:
+
+\`\`\`text
+http://localhost:8110
+\`\`\`
+
+---
+
+# 🔑 Default Admin Credentials
+
+| Email | Password | Role |
+|------|------|------|
+| admin@savoria.com | admin123 | Administrator |
+
+> Change the default admin password immediately in production.
+
+---
+
+# 🌐 API Documentation
+
+## Public API
+
+| Endpoint | Method | Description | Auth |
+|----------|--------|-------------|------|
+| \`/api/auth.php\` | POST | Login / Register / Logout | No |
+| \`/api/menu.php\` | GET | Get menu items | No |
+| \`/api/order.php\` | POST | Place order | User |
+| \`/api/reservation.php\` | GET/POST | Reservations | User |
+
+---
+
+## Admin API
+
+| Endpoint | Method | Description | Auth |
+|----------|--------|-------------|------|
+| \`/admin/Activity.php\` | GET | Activity feed | Admin |
+| \`/admin/Order.php\` | GET/POST | Orders management | Admin |
+| \`/admin/Reservation.php\` | GET/POST | Reservations management | Admin |
+| \`/admin/menu-items.php\` | GET/POST | Menu CRUD | Admin |
+
+---
+
+# 🧪 Development Commands
+
+## Start Development Server
+
+\`\`\`bash
+php -t public -S localhost:8110
+\`\`\`
+
+---
+
+## Check PHP Syntax
+
+\`\`\`bash
+find . -name "*.php" -exec php -l {} \\;
+\`\`\`
+
+---
+
+## Test Database Connection
+
+\`\`\`bash
+php -r "require 'config/env.php'; \\$pdo = new PDO('mysql:host='.getenv('DB_HOST').';dbname='.getenv('DB_NAME'), getenv('DB_USER'), getenv('DB_PASS')); echo 'DB OK';"
+\`\`\`
+
+---
+
+## Run on Different Port
+
+\`\`\`bash
+php -t public -S localhost:8080
+\`\`\`
+
+---
+
+# 🔐 Security Practices
+
+- Password hashing using \`password_hash()\`
+- PDO prepared statements
+- Session regeneration on login
+- Secure session handling
+- Environment-based configuration
+- Server-side validation
+- File upload restrictions
+- Role-based access control
+
+---
+
+# 🚀 Deployment Notes
+
+## Production Checklist
+
+- Set \`APP_ENV=production\`
+- Use Apache or Nginx
+- Enable HTTPS
+- Configure PHP-FPM
+- Secure file permissions
+- Set upload limits
+- Enable backups
+- Rotate logs
+- Change default credentials
+
+---
+
+# 🌍 Nginx Configuration
+
+\`\`\`nginx
+server {
+    listen 80;
+    server_name yourdomain.com;
+
+    root /var/www/soltana-express/public;
+    index index.php;
+
+    location / {
+        try_files \\$uri \\$uri/ /index.php?\\$query_string;
+    }
+
+    location ~ \\.php\\$ {
+        include snippets/fastcgi-php.conf;
+        fastcgi_pass unix:/run/php/php8.4-fpm.sock;
+
+        fastcgi_param SCRIPT_FILENAME \\$document_root\\$fastcgi_script_name;
+
+        include fastcgi_params;
+    }
+
+    location ~ /\\. {
+        deny all;
+    }
+
+    location ~* \\.(jpg|jpeg|png|gif|ico|css|js)\\$ {
+        expires 30d;
+    }
+}
+\`\`\`
+
+---
+EOF
