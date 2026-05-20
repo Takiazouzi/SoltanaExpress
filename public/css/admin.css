@@ -1,0 +1,130 @@
+
+/* ========================================================================== */
+/* ACTIVITY FEED                                                              */
+/* ========================================================================== */
+.activity-feed {
+  max-height: 400px;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+.activity-item {
+  display: flex;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+  transition: background var(--transition);
+}
+
+.activity-item:last-child { border-bottom: none; }
+.activity-item:hover { background: var(--row-alt); }
+
+.activity-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--brand-light);
+  color: var(--brand);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.activity-icon.order { background: #DBEAFE; color: #1E40AF; }
+.activity-icon.reservation { background: #DCFCE7; color: #166534; }
+.activity-icon.menu { background: #FEF3C7; color: #92400E; }
+.activity-icon.user { background: #F3E8FF; color: #7E22CE; }
+
+.activity-content { flex: 1; min-width: 0; }
+
+.activity-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.activity-title {
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--text);
+}
+
+.activity-time {
+  font-size: 11px;
+  color: var(--text-hint);
+  white-space: nowrap;
+}
+
+.activity-description {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+  line-height: 1.4;
+}
+
+.activity-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.activity-user {
+  color: var(--text);
+  font-weight: 500;
+}
+
+.activity-status {
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.activity-status.pending { background: #FEF3C7; color: #92400E; }
+.activity-status.confirmed { background: #DBEAFE; color: #1E40AF; }
+.activity-status.cancelled { background: #F1F5F9; color: #475569; }
+
+.activity-link {
+  color: var(--brand);
+  font-weight: 500;
+  font-size: 12px;
+  text-decoration: none;
+}
+
+.activity-link:hover { text-decoration: underline; }
+
+.activity-empty {
+  text-align: center;
+  padding: 24px;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.activity-refresh {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 12px;
+}
+
+.activity-refresh button {
+  padding: 6px 12px;
+  font-size: 12px;
+}
+
+/* Scrollbar styling */
+.activity-feed::-webkit-scrollbar { width: 6px; }
+.activity-feed::-webkit-scrollbar-track { background: var(--surface); border-radius: 3px; }
+.activity-feed::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+.activity-feed::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+@media (max-width: 768px) {
+  .activity-feed { max-height: 300px; }
+  .activity-header { flex-direction: column; align-items: flex-start; }
+}
