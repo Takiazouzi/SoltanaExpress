@@ -12,8 +12,11 @@
     </div>
   </div>
 
+  <!-- Shared Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="/admin/js/admin.js"></script>
+  <script src="/js/dropdown.js"></script>
+  
   <?php if (!empty($pageScripts)) echo $pageScripts; ?>
 </body>
 </html>
