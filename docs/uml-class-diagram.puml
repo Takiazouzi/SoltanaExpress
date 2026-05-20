@@ -1,0 +1,89 @@
+@startuml
+skinparam classAttributeIconSize 0
+hide empty members
+
+class User {
+  -int id
+  -string name
+  -string email
+  -string password
+  -string role
+  -string avatar
+  -DateTime createdAt
+  +register(name: string, email: string, password: string): array
+  +login(email: string, password: string): array
+  +logout(): void
+  +getProfile(userId: int): array
+  +updateProfile(userId: int, name: string): array
+  +getCurrentUser(): ?array
+}
+
+class MenuItem {
+  -int id
+  -string name
+  -string description
+  -float price
+  -string category
+  -string imagePath
+  -bool available
+  -DateTime createdAt
+  +getAll(): array
+  +getByCategory(category: string): array
+  +getCategories(): array
+  +create(data: array): array
+  +update(id: int, data: array): array
+  +delete(id: int): array
+  +uploadImage(id: int, file: array): array
+}
+
+class Order {
+  -int id
+  -int userId
+  -string status
+  -float total
+  -string notes
+  -DateTime createdAt
+  +getAll(status: ?string): array
+  +getByUser(userId: int): array
+  +getDetail(orderId: int): array
+  +place(userId: int, items: array, notes: string): array
+  +updateStatus(orderId: int, status: string): array
+}
+
+class OrderItem {
+  -int id
+  -int orderId
+  -int menuItemId
+  -int quantity
+  -float unitPrice
+}
+
+class Reservation {
+  -int id
+  -int userId
+  -string date
+  -string time
+  -int guests
+  -string status
+  -string specialRequests
+  -DateTime createdAt
+  +getAll(status: ?string): array
+  +getByUser(userId: int): array
+  +create(userId: int, date: string, time: string, guests: int, notes: string): array
+  +updateStatus(id: int, status: string): array
+  +getAvailableSlots(date: string): array
+  +cancel(id: int, userId: int): array
+}
+
+class Stats {
+  +getSummary(): array
+  +getOrdersByStatus(): array
+  +getTopItems(limit: int): array
+  +getRevenueByDay(days: int): array
+}
+
+User "1" --> "0..*" Order : places
+User "1" --> "0..*" Reservation : makes
+Order "1" *-- "1..*" OrderItem : contains
+OrderItem "0..*" --> "1" MenuItem : references
+@enduml
