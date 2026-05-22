@@ -1,30 +1,50 @@
 <?php
 header('Content-Type: application/json');
 require_once __DIR__ . '/../../config/env.php';
+if (session_status() === PHP_SESSION_NONE) session_start();
 
-if (session_status() === PHP_SESSION_NONE) @session_start();
-if (empty($_SESSION['user_id'])) { http_response_code(401); echo json_encode(['success'=>false,'message'=>'Please log in']); exit; }
-
-$userId = (int)$_SESSION['user_id'];
-$dsn = sprintf('mysql:host=%s;port=%s;dbname=%s;charset=utf8mb4', getenv('DB_HOST'), getenv('DB_PORT')?:'3306', getenv('DB_NAME'));
-$pdo = new PDO($dsn, getenv('DB_USER'), getenv('DB_PASS'), [PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION]);
-
-require_once __DIR__.'/../../src/models/Reservation.php';
-$model = new Reservation($pdo);
-
-if ($_SERVER['REQUEST_METHOD']==='GET' && ($_GET['action']??'')==='available_slots') {
-    $date = $_GET['date']??'';
-    if (!preg_match('/^\d{4}-\d{2}-\d{2}$/',$date)) { http_response_code(400); echo json_encode(['success'=>false,'message'=>'Invalid date']); exit; }
-    echo json_encode(['success'=>true,'slots'=>$model->getAvailableSlots($date)]); exit;
+if (empty($_SESSION['user_id'])) {
+    http_response_code(401);
+    echo json_encode(['success' => false, 'message' => 'Please log in to make a reservation']);
+    exit;
 }
 
-if ($_SERVER['REQUEST_METHOD']==='POST') {
-    $raw=file_get_contents('php://input'); $data=json_decode($raw,true); $action=$data['action']??'';
-    if ($action==='create') { echo json_encode($model->create($userId,$data['date']??'',$data['time']??'',(int)$data['guests']??0,trim($data['notes']??''))); exit; }
-    if ($action==='cancel') { 
-        $stmt=$pdo->prepare('UPDATE reservations SET status="cancelled" WHERE id=? AND user_id=? AND status!="cancelled"'); 
-        $stmt->execute([(int)$data['id']??0,$userId]); 
-        echo json_encode(['success'=>$stmt->rowCount()>0,'message'=>$stmt->rowCount()>0?'Cancelled':'Not found']); exit; 
-    }
+$raw = file_get_contents('php://input');
+$data = json_decode($raw, true);
+
+$date = trim($data['date'] ?? '');
+$time = trim($data['time'] ?? '');
+$guests = (int)($data['guests'] ?? 1);
+$notes = trim($data['notes'] ?? '');
+
+// Validation
+if (!$date || !$time || $guests < 1 || $guests > 20) {
+    echo json_encode(['success' => false, 'message' => 'Invalid date, time, or guest count (1-20)']); exit;
 }
-http_response_code(400); echo json_encode(['success'=>false,'message'=>'Invalid request']);
+if (!strtotime($date) || !strtotime($time)) {
+    echo json_encode(['success' => false, 'message' => 'Invalid date or time format']); exit;
+}
+if (strtotime($date) < strtotime(date('Y-m-d'))) {
+    echo json_encode(['success' => false, 'message' => 'Reservations must be for future dates']); exit;
+}
+
+$dsn = sprintf('mysql:host=%s;port=%s;dbname=%s;charset=utf8mb4', 
+    getenv('DB_HOST') ?: '127.0.0.1', getenv('DB_PORT') ?: '3306', getenv('DB_NAME') ?: 'restaurant');
+try {
+    $pdo = new PDO($dsn, getenv('DB_USER') ?: 'root', getenv('DB_PASS') ?: '', [PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION]);
+} catch (PDOException $e) {
+    http_response_code(500); echo json_encode(['success'=>false,'message'=>'Database unavailable']); exit;
+}
+
+// Check for double-booking (exact date & time)
+$stmt = $pdo->prepare("SELECT id FROM reservations WHERE date = ? AND time = ? AND status != 'cancelled'");
+$stmt->execute([$date, $time]);
+if ($stmt->fetch()) {
+    echo json_encode(['success' => false, 'message' => 'This time slot is already booked. Please choose another.']); exit;
+}
+
+// Insert reservation
+$stmt = $pdo->prepare("INSERT INTO reservations (user_id, date, time, guests, special_requests, status) VALUES (?, ?, ?, ?, ?, 'pending')");
+$stmt->execute([$_SESSION['user_id'], $date, $time, $guests, $notes]);
+
+echo json_encode(['success' => true, 'message' => 'Reservation confirmed!', 'id' => (int)$pdo->lastInsertId()]);

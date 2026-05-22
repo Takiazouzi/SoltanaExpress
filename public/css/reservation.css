@@ -1,0 +1,96 @@
+/* ========================================================================== */
+/* RESERVATION PAGE - Client Booking Flow                                     */
+/* ========================================================================== */
+
+.reservation-wrapper {
+  min-height: calc(100vh - 60px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  background: linear-gradient(135deg, var(--surface) 0%, var(--brand-light) 100%);
+}
+
+.reservation-card {
+  width: 100%;
+  max-width: 520px;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 2.5rem;
+  box-shadow: var(--shadow-lg);
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.reservation-header { text-align: center; margin-bottom: 2rem; }
+.reservation-header h1 { font-size: 1.8rem; font-weight: 700; margin: 0 0 8px; color: var(--text); }
+.reservation-header p { color: var(--text-muted); margin: 0; font-size: 14px; }
+
+.res-form { display: flex; flex-direction: column; gap: 1.25rem; }
+
+.res-label { display: block; font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+.res-input, .res-select, .res-textarea {
+  width: 100%; padding: 0 14px; height: 44px; font-size: 14px; font-family: inherit;
+  color: var(--text); background: #fff; border: 1px solid #E0DDD8; border-radius: var(--radius-sm);
+  transition: var(--transition); box-sizing: border-box;
+}
+.res-textarea { height: auto; min-height: 80px; padding: 12px 14px; resize: vertical; }
+.res-input:focus, .res-select:focus, .res-textarea:focus {
+  border-color: var(--brand); outline: none; box-shadow: 0 0 0 3px rgba(193,68,14,0.15);
+}
+
+/* Guest Stepper */
+.guest-stepper { display: flex; align-items: center; gap: 12px; }
+.guest-btn {
+  width: 40px; height: 40px; border: 1px solid var(--border); border-radius: var(--radius-sm);
+  background: var(--surface); cursor: pointer; font-size: 18px; font-weight: 500; color: var(--text);
+  transition: var(--transition);
+}
+.guest-btn:hover { background: var(--brand-light); border-color: var(--brand); color: var(--brand); }
+.guest-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.guest-count {
+  width: 50px; text-align: center; font-size: 18px; font-weight: 600; color: var(--text);
+  background: none; border: none; outline: none;
+}
+
+/* Time Slots Grid */
+.time-slots { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 8px; }
+.time-slot {
+  padding: 10px; text-align: center; border: 1px solid var(--border); border-radius: var(--radius-sm);
+  background: var(--surface); cursor: pointer; font-size: 13px; font-weight: 500; transition: var(--transition);
+}
+.time-slot:hover { border-color: var(--brand); color: var(--brand); }
+.time-slot.selected { background: var(--brand); color: #fff; border-color: var(--brand); }
+.time-slot.unavailable { opacity: 0.5; cursor: not-allowed; text-decoration: line-through; background: #F3F4F6; }
+
+/* Submit Button */
+.res-submit {
+  width: 100%; height: 44px; background: var(--brand); color: #fff; border: none;
+  border-radius: var(--radius-sm); font-size: 14px; font-weight: 600; cursor: pointer;
+  transition: var(--transition); margin-top: 0.5rem;
+}
+.res-submit:hover { background: var(--brand-hover); }
+.res-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* Messages */
+.res-message {
+  padding: 10px 14px; border-radius: 20px; font-size: 13px; display: none;
+  animation: slideIn 0.2s ease;
+}
+@keyframes slideIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+.res-message.success { display: block; background: #F0FDF4; color: #166534; border: 1px solid #BBF7D0; }
+.res-message.error { display: block; background: #FEF2F2; color: #991B1B; border: 1px solid #FCA5A5; }
+
+.res-footer { text-align: center; margin-top: 1.5rem; font-size: 13px; color: var(--text-muted); }
+.res-footer a { color: var(--brand); font-weight: 500; text-decoration: none; }
+.res-footer a:hover { text-decoration: underline; }
+
+@media (max-width: 480px) {
+  .reservation-card { padding: 1.5rem; margin: 0 0.5rem; }
+  .time-slots { grid-template-columns: repeat(2, 1fr); }
+}

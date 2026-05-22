@@ -1,150 +1,105 @@
 (function() {
   'use strict';
-  var API_ENDPOINT = '/api/profile.php';
-  var AUTH_ENDPOINT = '/api/auth.php';
-  var currentUser = null, orders = [], reservations = [];
+  const API = '/api/profile.php';
+  const $ = id => document.getElementById(id);
 
-  function $(id) { return document.getElementById(id); }
-  function $$(selector) { return document.querySelectorAll(selector); }
-
-  function getInitials(name) {
-    if (!name) return '??';
-    var p = name.trim().split(/\s+/);
-    return ((p[0] ? p[0][0] : '') + (p[1] ? p[1][0] : '')).toUpperCase();
+  async function fetchJson(url) {
+    const res = await fetch(url, { credentials: 'same-origin' });
+    return res.json();
   }
 
-  function formatDate(dateStr) {
-    if (!dateStr) return '';
-    var d = new Date(dateStr);
-    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  // Load sidebar stats
+  async function loadStats() {
+    try {
+      const data = await fetchJson(API);
+      if (data.success) {
+        if ($('stat-orders')) $('stat-orders').textContent = data.data.orders ?? 0;
+        if ($('stat-reservations')) $('stat-reservations').textContent = data.data.reservations ?? 0;
+        if ($('stat-users')) $('stat-users').textContent = data.data.users ?? 0;
+        if ($('stat-revenue')) $('stat-revenue').textContent = '$' + (data.data.revenue ?? 0);
+      }
+    } catch(e) { console.error('Stats load failed:', e); }
   }
 
-  function formatCurrency(amount) {
-    var n = parseFloat(amount);
-    return '$' + (isNaN(n) ? '0.00' : n.toFixed(2));
+  // Render Orders
+  async function loadOrders() {
+    const container = $('orders-list');
+    if (!container) return;
+    container.innerHTML = '<div class="loading">Loading orders...</div>';
+    try {
+      const data = await fetchJson(API + '?action=orders');
+      if (!data.success || !data.data.length) {
+        container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📦</div><p class="empty-state-text">No orders yet</p><a href="/menu.php" class="empty-state-link">Browse Menu</a></div>';
+        return;
+      }
+      container.innerHTML = data.data.map(o => `
+        <div class="order-card" onclick="this.classList.toggle('expanded')">
+          <div class="order-header">
+            <div>
+              <div class="order-id">Order #${o.id}</div>
+              <div class="order-date">${new Date(o.created_at).toLocaleDateString()} • ${o.item_count} item${o.item_count>1?'s':''}</div>
+            </div>
+            <span class="badge badge-${o.status}">${o.status}</span>
+          </div>
+          <div class="order-total" style="margin-top:8px">$${parseFloat(o.total).toFixed(2)}</div>
+          <div class="order-items">
+            ${o.notes ? `<p style="margin-bottom:8px"><strong>Notes:</strong> ${o.notes}</p>` : ''}
+            <p class="text-muted" style="font-size:12px">Click to collapse</p>
+          </div>
+        </div>
+      `).join('');
+    } catch(e) { container.innerHTML = '<div class="empty-state">Failed to load orders</div>'; }
   }
 
-  function getStatusBadge(status) {
-    var c = { pending: 'badge-pending', confirmed: 'badge-confirmed', preparing: 'badge-preparing', ready: 'badge-ready', delivered: 'badge-delivered', cancelled: 'badge-cancelled' };
-    var cls = c[status] || 'badge-pending';
-    var txt = status ? status.charAt(0).toUpperCase() + status.slice(1) : 'Unknown';
-    return '<span class="badge ' + cls + '">' + txt + '</span>';
+  // Render Reservations
+  async function loadReservations() {
+    const container = $('reservations-list');
+    if (!container) return;
+    container.innerHTML = '<div class="loading">Loading reservations...</div>';
+    try {
+      const data = await fetchJson(API + '?action=reservations');
+      if (!data.success || !data.data.length) {
+        container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📅</div><p class="empty-state-text">No reservations yet</p><a href="/reservation.php" class="empty-state-link">Book a Table</a></div>';
+        return;
+      }
+      container.innerHTML = data.data.map(r => `
+        <div class="reservation-card" onclick="this.classList.toggle('expanded')">
+          <div class="res-header">
+            <div>
+              <div class="res-date">${new Date(r.date).toLocaleDateString('en-US', {weekday:'short', month:'short', day:'numeric'})}</div>
+              <div class="res-time">🕐 ${r.time} • 👥 ${r.guests} guests</div>
+            </div>
+            <span class="badge badge-${r.status}">${r.status}</span>
+          </div>
+          <div class="res-details">
+            ${r.special_requests ? `<p style="margin-bottom:8px"><strong>Requests:</strong> ${r.special_requests}</p>` : ''}
+            <p class="text-muted" style="font-size:12px">Booked on ${new Date(r.created_at).toLocaleDateString()}</p>
+          </div>
+        </div>
+      `).join('');
+    } catch(e) { container.innerHTML = '<div class="empty-state">Failed to load reservations</div>'; }
   }
 
-  function fetchData() {
-    return fetch(API_ENDPOINT, { method: 'GET', credentials: 'same-origin' })
-      .then(function(res) { if (res.status === 401) { window.location.href = '/login.php'; return null; } return res.json(); })
-      .then(function(data) {
-        if (!data || !data.success) throw new Error(data ? data.message : 'Unknown error');
-        currentUser = data.user;
-        orders = data.orders || [];
-        reservations = data.reservations || [];
-        return data;
-      });
-  }
+  // Tab Switching
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      this.classList.add('active');
+      const tab = this.dataset.tab;
+      if ($(`${tab}-tab`)) $(`${tab}-tab`).classList.add('active');
+      if (tab === 'orders') loadOrders();
+      if (tab === 'reservations') loadReservations();
+    });
+  });
 
-  function cancelReservationApi(id) {
-    return fetch(API_ENDPOINT, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'cancel_reservation', reservation_id: id }),
-      credentials: 'same-origin'
-    }).then(function(r) { return r.json(); });
-  }
-
-  function renderUserInfo() {
-    if (!currentUser) return;
-    var avatar = $('user-avatar'), nameEl = $('user-name'), emailEl = $('user-email'), sinceEl = $('member-since');
-    if (avatar) avatar.textContent = getInitials(currentUser.name);
-    if (nameEl) nameEl.textContent = currentUser.name || 'Guest';
-    if (emailEl) emailEl.textContent = currentUser.email || '';
-    if (sinceEl) sinceEl.textContent = 'Member since ' + (currentUser.member_since || '');
-  }
-
-  function renderOrders() {
-    var c = $('orders-list'); if (!c) return;
-    if (!orders || orders.length === 0) {
-      c.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🛒</div><p class="empty-state-text">No orders yet. Browse our menu to start ordering!</p><a href="/menu.php" class="empty-state-link">Browse Menu →</a></div>';
-      return;
+  // Init
+  document.addEventListener('DOMContentLoaded', () => {
+    loadStats();
+    const activeTab = document.querySelector('.tab-btn.active');
+    if (activeTab) {
+      if (activeTab.dataset.tab === 'orders') loadOrders();
+      if (activeTab.dataset.tab === 'reservations') loadReservations();
     }
-    var html = '';
-    for (var i = 0; i < orders.length; i++) {
-      var o = orders[i];
-      html += '<div class="order-card" data-order-id="' + o.id + '">' +
-        '<div class="order-left"><span class="order-id">Order #' + o.id + '</span><span class="order-date">' + formatDate(o.created_at) + '</span></div>' +
-        '<div class="order-right"><span class="order-total">' + formatCurrency(o.total) + '</span>' + getStatusBadge(o.status) + '</div>' +
-        '<div class="order-items"><div style="font-weight:500;margin-bottom:8px;font-size:13px">Items:</div><div class="order-item-meta">' + (o.items_count || 0) + ' item(s)</div></div>' +
-        '</div>';
-    }
-    c.innerHTML = html;
-    c.querySelectorAll('.order-card').forEach(function(card) {
-      card.addEventListener('click', function(e) { if (!e.target.closest('.badge')) card.classList.toggle('expanded'); });
-    });
-  }
-
-  function renderReservations() {
-    var c = $('reservations-list'); if (!c) return;
-    if (!reservations || reservations.length === 0) {
-      c.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📅</div><p class="empty-state-text">No reservations yet. Book a table for your next visit!</p><a href="/reservation.php" class="empty-state-link">Make Reservation →</a></div>';
-      return;
-    }
-    var html = '';
-    for (var i = 0; i < reservations.length; i++) {
-      var r = reservations[i];
-      var gt = r.guests > 1 ? 's' : '';
-      var cb = r.can_cancel ? '<button class="btn-cancel" data-cancel-id="' + r.id + '">Cancel</button>' : '';
-      html += '<div class="reservation-card"><div><div class="res-date">' + r.formatted_date + '</div><div class="res-time">🕐 ' + r.formatted_time + '</div><div class="res-guests">👥 ' + r.guests + ' guest' + gt + '</div></div><div class="res-actions">' + getStatusBadge(r.status) + cb + '</div></div>';
-    }
-    c.innerHTML = html;
-    c.querySelectorAll('[data-cancel-id]').forEach(function(btn) {
-      btn.addEventListener('click', function(e) {
-        e.stopPropagation();
-        var id = parseInt(btn.getAttribute('data-cancel-id'));
-        if (!id) return;
-        if (!confirm('Are you sure you want to cancel this reservation?')) return;
-        btn.disabled = true; btn.textContent = 'Cancelling...';
-        cancelReservationApi(id).then(function(res) {
-          if (res && res.success) { fetchData().then(function() { renderReservations(); }); }
-          else { alert(res && res.message ? res.message : 'Failed'); btn.disabled = false; btn.textContent = 'Cancel'; }
-        }).catch(function(err) { alert('Error: ' + err.message); btn.disabled = false; btn.textContent = 'Cancel'; });
-      });
-    });
-  }
-
-  function initTabs() {
-    $$('.tab-btn').forEach(function(btn) {
-      btn.addEventListener('click', function() {
-        $$('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
-        $$('.tab-content').forEach(function(c) { c.classList.remove('active'); });
-        btn.classList.add('active');
-        var t = $(btn.getAttribute('data-tab') + '-tab');
-        if (t) t.classList.add('active');
-      });
-    });
-  }
-
-  function initLogout() {
-    var lo = $('logout-link');
-    if (!lo) return;
-    lo.addEventListener('click', function(e) {
-      e.preventDefault();
-      fetch(AUTH_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'logout' }), credentials: 'same-origin' })
-        .then(function() { window.location.href = '/login.php'; });
-    });
-  }
-
-  function init() {
-    console.log('Profile initializing...');
-    var ordersList = $('orders-list');
-    if (ordersList) ordersList.innerHTML = '<div class="loading">Loading your data...</div>';
-    fetchData().then(function() {
-      console.log('Data loaded');
-      renderUserInfo(); renderOrders(); renderReservations(); initTabs(); initLogout();
-      console.log('Ready');
-    }).catch(function(err) {
-      console.error(err);
-      if (ordersList) ordersList.innerHTML = '<div class="empty-state"><p style="color:#991B1B">Error: ' + err.message + '</p><button onclick="location.reload()" style="margin-top:10px;padding:8px 16px;background:var(--color-brand);color:#fff;border:none;border-radius:6px;cursor:pointer">Retry</button></div>';
-    });
-  }
-
-  if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', init); } else { init(); }
+  });
 })();
